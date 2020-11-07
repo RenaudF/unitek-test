@@ -1,0 +1,17 @@
+{
+  "name": "unitek-test",
+  "version": "1.0.0",
+  "description": "Simple graph visualisation interview test",
+  "scripts": {
+    "prestart": "docker build -t webserver .",
+    "restart": "npm stop 2>/dev/null && npm start",
+    "start": "docker run -it -d --rm -p 8080:80 --name web webserver",
+    "stop": "docker container stop web || true",
+    "watch": "npm run restart && onchange 'app/*' -- npm run restart"
+  },
+  "author": "Renaud Fontana <sirgzu@hotmail.com>",
+  "license": "ISC",
+  "devDependencies": {
+    "onchange": "7.1.0"
+  }
+}

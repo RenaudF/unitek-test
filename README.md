@@ -24,3 +24,13 @@ docker run -it --rm -p 8080:80 --name web webserver
 ```
 
 Once you have it running, to access the application simply browse to [http://localhost:8080](http://localhost:8080)
+
+# Development
+
+You can edit these files directly, rebuild the image and run it manually without any extra dependencies. You can also use the [npm](https://www.npmjs.com/get-npm) scripts provided for convenience (see the `scripts: { ... }` section in `package.json`).
+
+- To avoid manually rebuilding everytime you make a change, simply run:
+
+```
+npm run watch
+```
