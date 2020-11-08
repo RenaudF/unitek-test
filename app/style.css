@@ -24,3 +24,6 @@ svg {
   stroke-width: 1.5px;
   fill: none;
 }
+.edgePath marker path {
+  fill: #333;
+}

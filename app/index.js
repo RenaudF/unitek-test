@@ -1,6 +1,10 @@
-import { preprocess } from "./utils.js";
+import { preprocess, process } from "./utils.js";
 
-d3.text("test.gv").then(graphlibDot.read).then(preprocess).then(render);
+d3.text("test.gv")
+  .then(graphlibDot.read)
+  .then(preprocess)
+  .then(process)
+  .then(render);
 
 function render(graph) {
   // Render the graphlib object using d3
