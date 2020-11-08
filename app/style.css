@@ -10,6 +10,9 @@ svg {
   overflow: hidden;
   border: 1px solid #999;
 }
+g.node {
+  cursor: pointer;
+}
 .node rect,
 .node ellipse {
   stroke: #333;

@@ -1,4 +1,4 @@
-import { preprocess, process } from "./utils.js";
+import { preprocess, process, registerHandlers } from "./utils.js";
 
 d3.text("test.gv")
   .then(graphlibDot.read)
@@ -37,4 +37,6 @@ function render(graph) {
     .transition()
     .duration(750)
     .call(zoom.transform, d3.zoomIdentity.translate(dx, dy).scale(scale));
+
+  registerHandlers();
 }
