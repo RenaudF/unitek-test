@@ -27,10 +27,16 @@ Once you have it running, to access the application simply browse to [http://loc
 
 # Development
 
-You can edit these files directly, rebuild the image and run it manually without any extra dependencies. You can also use the [npm](https://www.npmjs.com/get-npm) scripts provided for convenience (see the `scripts: { ... }` section in `package.json`).
+You can edit these files directly, rebuild the image and run it manually without any extra dependencies. You can also use the [npm](https://www.npmjs.com/get-npm) scripts provided for convenience (see the `scripts: { ... }` section in `package.json`). It is recommended you setup your text editor to work with `eslint` and `prettier` to make sure you adhere to the standard code styling.
 
 - To avoid manually rebuilding everytime you make a change, simply run:
 
 ```
 npm run watch
+```
+
+- To automatically enforce code styling without extra editor configuration, you can run instead:
+
+```
+npm run watch:style
 ```
