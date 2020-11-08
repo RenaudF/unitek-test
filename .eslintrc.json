@@ -5,7 +5,8 @@
   },
   "extends": ["eslint:recommended", "prettier"],
   "globals": {
-    "d3": false
+    "d3": false,
+    "graphlibDot": false
   },
   "parserOptions": {
     "ecmaVersion": 12,
