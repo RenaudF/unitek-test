@@ -1,8 +1,10 @@
-import { preprocess, process } from "./utils.js";
+import { preprocess, process, registerHandlers } from "./utils.js";
 
 d3.text("test.gv")
   .then(graphlibDot.read)
   .then(preprocess)
   .then(process)
   .then(graphlibDot.write)
-  .then((dotString) => d3.select("#graph").graphviz().renderDot(dotString));
+  .then((dotString) =>
+    d3.select("#graph").graphviz().renderDot(dotString, registerHandlers)
+  );

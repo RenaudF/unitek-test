@@ -1,3 +1,7 @@
 #graph {
   text-align: center;
 }
+
+g.node {
+  cursor: pointer;
+}
