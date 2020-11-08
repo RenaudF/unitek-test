@@ -4,4 +4,4 @@ d3.text("test.gv")
   .then(graphlibDot.read)
   .then(preprocess)
   .then(graphlibDot.write)
-  .then(console.log);
+  .then((dotString) => d3.select("#graph").graphviz().renderDot(dotString));
