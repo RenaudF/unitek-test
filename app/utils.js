@@ -1,13 +1,13 @@
 export function preprocess(graph) {
-  graph.nodes().forEach((id) => {
+  const nodes = graph.nodes().map((id) => {
     const node = graph.node(id);
     const [, value] = node.label.split("\\n").map((s) => +s.trim());
-    graph.setNode(id, { ...node, value });
+    return { id, node, value };
   });
-  graph.edges().forEach(({ v, w }) => {
+  const edges = graph.edges().map(({ v, w }) => {
     const edge = graph.edge(v, w);
     const value = +edge.label;
-    graph.setEdge(v, w, { ...edge, value });
+    return { source: v, target: w, edge, value };
   });
-  return graph;
+  return { nodes, edges };
 }
