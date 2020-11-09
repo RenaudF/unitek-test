@@ -34,28 +34,38 @@ function dagreRender(graph) {
 
   // setup zoom behaviour
   const zoom = d3.zoom().on("zoom", function () {
-    inner.attr("transform", d3.event.transform);
+    inner.attr("transform", d3.zoomTransform(inner.node()));
   });
   svg.call(zoom);
 
-  // init zoom to fit
-  const svgBCR = svg.node().getBoundingClientRect();
-  const gBCR = inner.node().getBoundingClientRect();
+  // zoom features
+  const resetTranslate = () => {
+    const svgBCR = svg.node().getBoundingClientRect();
+    const gBCR = inner.node().getBoundingClientRect();
+    const dx = svgBCR.left + svgBCR.width / 2 - gBCR.left - gBCR.width / 2;
+    const dy = svgBCR.top + svgBCR.height / 2 - gBCR.top - gBCR.height / 2;
+    const transform = inner.attr("transform");
+    const [, scale] = /scale\((.*?)\)/.exec(transform);
+    svg.call(
+      zoom.transform,
+      d3.zoomTransform(inner.node()).translate(dx / scale, dy / scale)
+    );
+  };
 
-  const heightRatio = svgBCR.height / gBCR.height;
-  const widthRatio = svgBCR.width / gBCR.width;
-  const scaleFactor = 0.9; // to leave some margins on the sides
+  const resetScale = () => {
+    const svgBCR = svg.node().getBoundingClientRect();
+    const gBCR = inner.node().getBoundingClientRect();
+    const heightRatio = svgBCR.height / gBCR.height;
+    const widthRatio = svgBCR.width / gBCR.width;
+    const scaleFactor = 0.95; // to leave some margins on the sides
+    const scale = Math.min(heightRatio, widthRatio) * scaleFactor;
+    svg.call(zoom.transform, d3.zoomTransform(inner.node()).scale(scale));
+  };
 
-  const scale = Math.min(heightRatio, widthRatio) * scaleFactor;
-  const dx =
-    (svgBCR.width - (gBCR.width - (svgBCR.left - gBCR.left)) * scale) / 2;
-  const dy =
-    (svgBCR.height - (gBCR.height - (svgBCR.top - gBCR.top)) * scale) / 2;
+  resetScale();
+  resetTranslate();
 
-  svg
-    .transition()
-    .duration(750)
-    .call(zoom.transform, d3.zoomIdentity.translate(dx, dy).scale(scale));
-
+  // event handlers
+  addEventListener("resize", resetScale);
   dagreRegisterHandlers();
 }
