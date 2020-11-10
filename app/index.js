@@ -20,15 +20,15 @@ function render({ nodes, edges }) {
   svg.attr("width", width).attr("height", height);
 
   const defs = svg.append("defs");
-  ["green", "#999"].forEach((color) =>
+  d3.cross(["green", "#999"], d3.range(8, 16)).forEach(([color, size]) =>
     defs
       .append("marker")
-      .attr("id", `arrow-${color}`)
-      .attr("viewBox", [0, 0, 15, 15])
-      .attr("refX", 7.5)
-      .attr("refY", 7.5)
-      .attr("markerWidth", 15)
-      .attr("markerHeight", 15)
+      .attr("id", `arrow-${color}-${size}`)
+      .attr("viewBox", [0, 0, size, size])
+      .attr("refX", size / 2)
+      .attr("refY", size / 2)
+      .attr("markerWidth", size)
+      .attr("markerHeight", size)
       .attr("orient", "auto")
       .attr("markerUnits", "userSpaceOnUse")
       .append("path")
@@ -38,8 +38,8 @@ function render({ nodes, edges }) {
         "d",
         d3.line()([
           [0, 0],
-          [15, 7.5],
-          [0, 15],
+          [size, size / 2],
+          [0, size],
         ])
       )
   );
@@ -120,8 +120,9 @@ function render({ nodes, edges }) {
     .attr("stroke-width", ({ edge: { width } }) => width)
     .attr(
       "marker-mid",
-      ({ circular, edge: { color } }) =>
-        circular || `url(#arrow-${color || "#999"})`
+      ({ circular, edge: { color, width } }) =>
+        circular ||
+        `url(#arrow-${color || "#999"}-${Math.floor(Math.max(8, width))})`
     );
 
   const nodeGroup = inner
