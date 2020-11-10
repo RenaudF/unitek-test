@@ -17,6 +17,31 @@ function render({ nodes, edges }) {
   const { width, height } = svg.node().getBoundingClientRect();
   svg.attr("width", width).attr("height", height);
 
+  const defs = svg.append("defs");
+  ["green", "#999"].forEach((color) =>
+    defs
+      .append("marker")
+      .attr("id", `arrow-${color}`)
+      .attr("viewBox", [0, 0, 15, 15])
+      .attr("refX", 7.5)
+      .attr("refY", 7.5)
+      .attr("markerWidth", 15)
+      .attr("markerHeight", 15)
+      .attr("orient", "auto")
+      .attr("markerUnits", "userSpaceOnUse")
+      .append("path")
+      .attr("fill", color)
+      .attr("opacity", 0.6)
+      .attr(
+        "d",
+        d3.line()([
+          [0, 0],
+          [15, 7.5],
+          [0, 15],
+        ])
+      )
+  );
+
   const simulation = d3
     .forceSimulation(nodes, ({ id }) => id)
     .force("edge", d3.forceLink(edges).distance(150).strength(0.2))
@@ -87,7 +112,11 @@ function render({ nodes, edges }) {
     )
     .attr("fill", "transparent")
     .attr("stroke", ({ edge: { color } }) => color || "#999")
-    .attr("stroke-width", ({ edge: { width } }) => width);
+    .attr("stroke-width", ({ edge: { width } }) => width)
+    .attr(
+      "marker-mid",
+      ({ edge: { color } }) => `url(#arrow-${color || "#999"})`
+    );
 
   const nodeGroup = svg
     .append("g")
