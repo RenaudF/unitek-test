@@ -58,8 +58,26 @@ function render({ nodes, edges }) {
     .attr("class", "nodeLabels")
     .selectAll("text")
     .data(nodes)
-    .join("text")
-    .text(({ data: { label } }) => label);
+    .join((enter) =>
+      enter.append(({ data: { label } }) => {
+        const [id, value] = label.split("\\n").map((s) => s.trim());
+        const g = d3.create("svg:g");
+        const text = g.append("text");
+        text
+          .append("tspan")
+          .text(id)
+          .attr("x", 0)
+          .attr("text-anchor", "middle")
+          .attr("dy", "-2px");
+        text
+          .append("tspan")
+          .text(value)
+          .attr("x", 0)
+          .attr("text-anchor", "middle")
+          .attr("dy", "1em");
+        return g.node();
+      })
+    );
 
   const edgeLabelGroup = svg
     .append("g")
@@ -78,7 +96,7 @@ function render({ nodes, edges }) {
 
     nodeGroup.attr("cx", ({ x }) => x).attr("cy", ({ y }) => y);
     nodeGroup.attr("x", ({ x }) => x).attr("y", ({ y }) => y);
-    nodeLabelGroup.attr("x", ({ x }) => x).attr("y", ({ y }) => y);
+    nodeLabelGroup.attr("transform", ({ x, y }) => `translate(${x},${y})`);
     edgeLabelGroup
       .attr("x", ({ source, target }) => (source.x + target.x) / 2)
       .attr("y", ({ source, target }) => (source.y + target.y) / 2);
