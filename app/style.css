@@ -9,3 +9,6 @@ svg#graph {
   width: 90vw;
   height: 90vh;
 }
+g.node {
+  cursor: pointer;
+}

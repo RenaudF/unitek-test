@@ -64,3 +64,9 @@ export function process({ nodes, edges }) {
 
   return { nodes, edges };
 }
+
+export function registerHandlers() {
+  d3.selectAll("g.node").on("click", ({ id }) => {
+    alert(`you have just clicked on node ${id}`);
+  });
+}
