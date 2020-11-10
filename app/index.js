@@ -1,4 +1,10 @@
-import { preprocess, process } from "./utils.js";
+import {
+  preprocess,
+  process,
+  diagonal2square,
+  middle as getMiddle,
+  xy2array,
+} from "./utils.js";
 
 d3.text("test.gv")
   .then(graphlibDot.read)
@@ -18,14 +24,70 @@ function render({ nodes, edges }) {
     .force("charge", d3.forceManyBody().strength(-1000).distanceMax(400))
     .force("center", d3.forceCenter(width / 2, height / 2));
 
+  /** invisible nodes used to draw paths */
+  const edgeLabelNodes = edges.map((edge) => {
+    const { source, target } = edge;
+    const circular = source === target;
+    return {
+      edge,
+      circular,
+      source: {},
+      label: {},
+      ...(circular
+        ? {
+            left: {},
+            right: {},
+          }
+        : {
+            middle: {},
+            target: {},
+          }),
+    };
+  });
+
+  const labelNodeSimulations = [
+    d3
+      .forceSimulation([...nodes, ...edgeLabelNodes.map(({ label }) => label)])
+      .force("charge", d3.forceManyBody().strength(-100).distanceMax(50))
+      .force("collide", d3.forceCollide().radius(10)),
+    ...edgeLabelNodes.map((edgeLabelNode) => {
+      const { circular, source, label } = edgeLabelNode;
+      if (circular) {
+        return d3.forceSimulation([source, label]).force(
+          "",
+          d3
+            .forceLink([{ source, target: label }])
+            .distance(40)
+            .strength(0.5)
+        );
+      } else {
+        const { middle, target } = edgeLabelNode;
+        return d3
+          .forceSimulation([source, middle, target, label])
+          .force("", d3.forceManyBody().strength(-10).distanceMax(1000))
+          .force(
+            "",
+            d3
+              .forceLink([{ source: middle, target: label }])
+              .distance(20)
+              .strength(0.5)
+          );
+      }
+    }),
+  ];
+
   const edgeGroup = svg
     .append("g")
     .attr("stroke-opacity", 0.6)
-    .selectAll("line")
-    .data(edges)
-    .join("line")
-    .attr("stroke", ({ color }) => color || "#999")
-    .attr("stroke-width", ({ width }) => width);
+    .selectAll("path")
+    .data(edgeLabelNodes)
+    .join("path")
+    .attr("d", ({ edge: { source, target } }) =>
+      d3.line()([xy2array(source), xy2array(target)])
+    )
+    .attr("fill", "transparent")
+    .attr("stroke", ({ edge: { color } }) => color || "#999")
+    .attr("stroke-width", ({ edge: { width } }) => width);
 
   const nodeGroup = svg
     .append("g")
@@ -50,8 +112,6 @@ function render({ nodes, edges }) {
     )
     .attr("fill", ({ color }) => color)
     .call(drag(simulation));
-
-  nodeGroup.append("title").text(({ data: { label } }) => label);
 
   const nodeLabelGroup = svg
     .append("g")
@@ -83,23 +143,66 @@ function render({ nodes, edges }) {
     .append("g")
     .attr("class", "edgeLabels")
     .selectAll("text")
-    .data(edges)
+    .data(edgeLabelNodes)
     .join("text")
-    .text(({ data: { label } }) => label);
+    .text(
+      ({
+        edge: {
+          data: { label },
+        },
+      }) => label
+    );
 
   simulation.on("tick", () => {
-    edgeGroup
-      .attr("x1", ({ source: { x } }) => x)
-      .attr("y1", ({ source: { y } }) => y)
-      .attr("x2", ({ target: { x } }) => x)
-      .attr("y2", ({ target: { y } }) => y);
+    edgeLabelNodes.forEach((edgeLabelNode) => {
+      const { source, label, edge, circular } = edgeLabelNode;
+      source.fx = source.x = edge.source.x;
+      source.fy = source.y = edge.source.y;
+      if (circular) {
+        const { left, right } = edgeLabelNode;
+        const [[x1, y1], [x2, y2]] = diagonal2square(
+          xy2array(source),
+          xy2array(label)
+        );
+        left.x = x1;
+        left.y = y1;
+        right.x = x2;
+        right.y = y2;
+      } else {
+        const { target, middle } = edgeLabelNode;
+        target.fx = target.x = edge.target.x;
+        target.fy = target.y = edge.target.y;
+        const _middle = getMiddle(source, target);
+        middle.x = middle.fx = _middle.x;
+        middle.y = middle.fy = _middle.y;
+      }
+    });
+
+    labelNodeSimulations.forEach((labelSimulation) =>
+      labelSimulation.alpha(simulation.alpha()).restart()
+    );
+
+    edgeGroup.attr("d", (edgeLabelNode) => {
+      const { source, label, circular } = edgeLabelNode;
+      if (circular) {
+        const { left, right } = edgeLabelNode;
+        return d3.line().curve(d3.curveNatural)(
+          [source, right, label, left, source].map(xy2array)
+        );
+      } else {
+        const { target } = edgeLabelNode;
+        return d3.line().curve(d3.curveNatural)(
+          [source, label, target].map(xy2array)
+        );
+      }
+    });
 
     nodeGroup.attr("cx", ({ x }) => x).attr("cy", ({ y }) => y);
     nodeGroup.attr("x", ({ x }) => x).attr("y", ({ y }) => y);
     nodeLabelGroup.attr("transform", ({ x, y }) => `translate(${x},${y})`);
     edgeLabelGroup
-      .attr("x", ({ source, target }) => (source.x + target.x) / 2)
-      .attr("y", ({ source, target }) => (source.y + target.y) / 2);
+      .attr("x", ({ label }) => label.x)
+      .attr("y", ({ label }) => label.y);
   });
 }
 
