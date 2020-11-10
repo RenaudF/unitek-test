@@ -44,6 +44,8 @@ function render({ nodes, edges }) {
       )
   );
 
+  const inner = svg.append("g");
+
   const simulation = d3
     .forceSimulation(nodes, ({ id }) => id)
     .force("edge", d3.forceLink(edges).distance(150).strength(0.2))
@@ -103,7 +105,7 @@ function render({ nodes, edges }) {
     }),
   ];
 
-  const edgeGroup = svg
+  const edgeGroup = inner
     .append("g")
     .attr("class", "edges")
     .attr("stroke-opacity", 0.6)
@@ -121,7 +123,7 @@ function render({ nodes, edges }) {
       ({ edge: { color } }) => `url(#arrow-${color || "#999"})`
     );
 
-  const nodeGroup = svg
+  const nodeGroup = inner
     .append("g")
     .attr("class", "nodes")
     .attr("stroke", "#fff")
@@ -163,7 +165,7 @@ function render({ nodes, edges }) {
     return text.node();
   });
 
-  const edgeLabelGroup = svg
+  const edgeLabelGroup = inner
     .append("g")
     .attr("class", "edgeLabels")
     .selectAll("text")
@@ -226,6 +228,12 @@ function render({ nodes, edges }) {
       .attr("x", ({ label }) => label.x)
       .attr("y", ({ label }) => label.y);
   });
+
+  // setup zoom behaviour
+  const zoom = d3.zoom().on("zoom", function () {
+    inner.attr("transform", d3.zoomTransform(inner.node()));
+  });
+  svg.call(zoom);
 }
 
 function drag(simulation) {
