@@ -1,6 +1,10 @@
-import { preprocess } from "./utils.js";
+import { preprocess, process } from "./utils.js";
 
-d3.text("test.gv").then(graphlibDot.read).then(preprocess).then(render);
+d3.text("test.gv")
+  .then(graphlibDot.read)
+  .then(preprocess)
+  .then(process)
+  .then(render);
 
 function render({ nodes, edges }) {
   const svg = d3.select("svg#graph");
@@ -9,39 +13,61 @@ function render({ nodes, edges }) {
 
   const simulation = d3
     .forceSimulation(nodes, ({ id }) => id)
-    .force(
-      "edge",
-      d3
-        .forceLink(edges)
-        .id(({ id }) => id)
-        .distance(150)
-        .strength(0.2)
-    )
+    .force("edge", d3.forceLink(edges).distance(150).strength(0.2))
     .force("collide", d3.forceCollide().radius(30))
     .force("charge", d3.forceManyBody().strength(-1000).distanceMax(400))
     .force("center", d3.forceCenter(width / 2, height / 2));
 
   const edgeGroup = svg
     .append("g")
-    .attr("stroke", "#999")
     .attr("stroke-opacity", 0.6)
     .selectAll("line")
     .data(edges)
     .join("line")
-    .attr("stroke-width", ({ value }) => Math.sqrt(value));
+    .attr("stroke", ({ color }) => color || "#999")
+    .attr("stroke-width", ({ width }) => width);
 
   const nodeGroup = svg
     .append("g")
     .attr("stroke", "#fff")
     .attr("stroke-width", 1.5)
-    .selectAll("circle")
+    .selectAll("circle, rect")
     .data(nodes)
-    .join("circle")
-    .attr("r", 25)
-    .attr("fill", "blue")
+    .join((enter) =>
+      enter.append(({ shape }) => {
+        switch (shape) {
+          case "rect":
+            return d3
+              .create("svg:rect")
+              .attr("width", 60)
+              .attr("height", 40)
+              .attr("transform", "translate(-30, -20)")
+              .node();
+          default:
+            return d3.create("svg:circle").attr("r", 25).node();
+        }
+      })
+    )
+    .attr("fill", ({ color }) => color)
     .call(drag(simulation));
 
-  nodeGroup.append("title").text(({ node: { label } }) => label);
+  nodeGroup.append("title").text(({ data: { label } }) => label);
+
+  const nodeLabelGroup = svg
+    .append("g")
+    .attr("class", "nodeLabels")
+    .selectAll("text")
+    .data(nodes)
+    .join("text")
+    .text(({ data: { label } }) => label);
+
+  const edgeLabelGroup = svg
+    .append("g")
+    .attr("class", "edgeLabels")
+    .selectAll("text")
+    .data(edges)
+    .join("text")
+    .text(({ data: { label } }) => label);
 
   simulation.on("tick", () => {
     edgeGroup
@@ -51,6 +77,11 @@ function render({ nodes, edges }) {
       .attr("y2", ({ target: { y } }) => y);
 
     nodeGroup.attr("cx", ({ x }) => x).attr("cy", ({ y }) => y);
+    nodeGroup.attr("x", ({ x }) => x).attr("y", ({ y }) => y);
+    nodeLabelGroup.attr("x", ({ x }) => x).attr("y", ({ y }) => y);
+    edgeLabelGroup
+      .attr("x", ({ source, target }) => (source.x + target.x) / 2)
+      .attr("y", ({ source, target }) => (source.y + target.y) / 2);
   });
 }
 
