@@ -120,7 +120,8 @@ function render({ nodes, edges }) {
     .attr("stroke-width", ({ edge: { width } }) => width)
     .attr(
       "marker-mid",
-      ({ edge: { color } }) => `url(#arrow-${color || "#999"})`
+      ({ circular, edge: { color } }) =>
+        circular || `url(#arrow-${color || "#999"})`
     );
 
   const nodeGroup = inner
