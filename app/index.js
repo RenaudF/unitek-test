@@ -1,4 +1,4 @@
-import { preprocess } from "./utils.js";
+import { preprocess } from "./utils/graphlibdot.js";
 import { process as dagreProcess, render as dagreRender } from "./dagre.js";
 import {
   process as graphvizProcess,

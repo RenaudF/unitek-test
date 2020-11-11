@@ -1,4 +1,4 @@
-import { getEdges, getNodes } from "./utils.js";
+import { getEdges, getNodes } from "./utils/graphlibdot.js";
 
 /** Adds visual dimensions to nodes and edges */
 export function process(graph) {
