@@ -1,5 +1,4 @@
-import { getEdges, getNodes } from "./utils/graphlibdot.js";
-import { registerOnClick } from "./utils/onclick.js";
+import { getEdges, getNodes } from "../utils/graphlibdot.js";
 
 /** Adds visual dimensions to nodes and edges */
 export function process(graph) {
@@ -12,8 +11,9 @@ export function process(graph) {
     .range(["blue", "orange"]);
 
   nodes.forEach(({ id, node }) => {
-    const fillcolor = d3.color(nodeColourScale(node.value)).formatHex();
-    graph.setNode(id, { ...node, fillcolor, style: "filled" });
+    const style = `fill: ${d3.color(nodeColourScale(node.value)).formatHex()};`;
+    const shape = "ellipse";
+    graph.setNode(id, { ...node, style, shape });
   });
 
   // setting all edges thickness
@@ -25,28 +25,20 @@ export function process(graph) {
     .range([1, 5]);
 
   edges.forEach(({ v, w, edge }) => {
-    const penwidth = edgeThicknessScale(edge.value);
-    graph.setEdge(v, w, { ...edge, penwidth });
+    const style = `stroke-width: ${edgeThicknessScale(edge.value)}px;`;
+    graph.setEdge(v, w, { ...edge, style });
   });
 
   // setting top value edge color and related node shapes
   const edgesTopValue = d3.max(edges, ({ edge: { value } }) => value);
   const { v, w } = edges.find(({ edge: { value } }) => value === edgesTopValue);
-  const shape = "box";
-  const color = "green";
+  const shape = "rect";
+  const style = graph.edge(v, w).style + `stroke: green;`;
+  const arrowheadStyle = "stroke: green; fill: green;";
 
   graph.setNode(v, { ...graph.node(v), shape });
   graph.setNode(w, { ...graph.node(w), shape });
-  graph.setEdge(v, w, { ...graph.edge(v, w), color });
+  graph.setEdge(v, w, { ...graph.edge(v, w), style, arrowheadStyle });
 
   return graph;
-}
-
-export function render(graph) {
-  const dotString = graphlibDot.write(graph);
-  d3.select("#graphviz")
-    .graphviz()
-    .renderDot(dotString, () => {
-      registerOnClick(d3.select("#graphviz svg"), ({ key }) => key);
-    });
 }

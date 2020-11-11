@@ -1,72 +1,6 @@
-import { d3Zoom } from "./utils/d3-zoom.js";
-import { registerOnClick } from "./utils/onclick.js";
-
-const xy2array = ({ x, y }) => [x, y];
-const getMiddle = (a, b) => ({
-  x: a.x + (b.x - a.x) / 2,
-  y: a.y + (b.y - a.y) / 2,
-});
-const diagonal2square = ([x1, y1], [x2, y2]) => {
-  const xc = (x1 + x2) / 2,
-    yc = (y1 + y2) / 2; // Center point
-  const xd = (x1 - x2) / 2,
-    yd = (y1 - y2) / 2; // Half-diagonal
-  const x3 = xc - yd,
-    y3 = yc + xd; // Third corner
-  const x4 = xc + yd,
-    y4 = yc - xd; // Fourth corner
-  return [
-    [x3, y3],
-    [x4, y4],
-  ];
-};
-
-export function preprocess(graph) {
-  const nodes = graph.nodes().map((id) => {
-    const data = graph.node(id);
-    const [, value] = data.label.split("\\n").map((s) => +s.trim());
-    return { id, data, value };
-  });
-  const edges = graph.edges().map(({ v, w }) => {
-    const data = graph.edge(v, w);
-    const value = +data.label;
-    const source = nodes.find(({ id }) => id === v);
-    const target = nodes.find(({ id }) => id === w);
-    return { source, target, data, value };
-  });
-  return { nodes, edges };
-}
-
-export function process({ nodes, edges }) {
-  // setting all nodes color gradient
-  const nodeValueExtent = d3.extent(nodes, ({ value }) => value);
-  const nodeColourScale = d3
-    .scaleLinear()
-    .domain(nodeValueExtent)
-    .range(["blue", "orange"]);
-
-  nodes.forEach(
-    (node) => (node.color = d3.color(nodeColourScale(node.value)).formatHex())
-  );
-
-  // setting all edges thickness
-  const edgeValueExtent = d3.extent(edges, ({ value }) => value);
-  const edgeThicknessScale = d3
-    .scaleSqrt()
-    .domain(edgeValueExtent)
-    .range([1, 15]);
-
-  edges.forEach((edge) => (edge.width = edgeThicknessScale(edge.value)));
-
-  // setting top value edge color and related node shapes
-  const edgesTopValue = d3.max(edges, ({ value }) => value);
-  const topValueEdge = edges.find(({ value }) => value === edgesTopValue);
-  topValueEdge.color = "green";
-  const { source, target } = topValueEdge;
-  [source, target].forEach((node) => (node.shape = "rect"));
-
-  return { nodes, edges };
-}
+import { d3Zoom } from "../utils/d3-zoom.js";
+import { registerOnClick } from "../utils/onclick.js";
+import { diagonal2square, drag, getMiddle, xy2array } from "./utils.js";
 
 export function render({ nodes, edges }) {
   const svg = d3.select("#d3-force").append("svg");
@@ -313,29 +247,4 @@ export function render({ nodes, edges }) {
   // event handlers
   addEventListener("resize", resetScale);
   registerOnClick(svg, ({ id }) => id);
-}
-
-function drag(simulation) {
-  function dragstarted(event) {
-    if (!event.active) simulation.alphaTarget(0.3).restart();
-    event.fx = event.x;
-    event.fy = event.y;
-  }
-
-  function dragged(event) {
-    event.fx = d3.event.x;
-    event.fy = d3.event.y;
-  }
-
-  function dragended(event) {
-    simulation.alphaTarget(0);
-    event.fx = null;
-    event.fy = null;
-  }
-
-  return d3
-    .drag()
-    .on("start", dragstarted)
-    .on("drag", dragged)
-    .on("end", dragended);
 }
