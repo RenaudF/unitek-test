@@ -1,4 +1,5 @@
 import { d3Zoom } from "./utils/d3-zoom.js";
+import { registerOnClick } from "./utils/onclick.js";
 
 const xy2array = ({ x, y }) => [x, y];
 const getMiddle = (a, b) => ({
@@ -34,12 +35,6 @@ export function preprocess(graph) {
     return { source, target, data, value };
   });
   return { nodes, edges };
-}
-
-function registerHandlers() {
-  d3.selectAll("g.node").on("click", ({ id }) => {
-    alert(`you have just clicked on node ${id}`);
-  });
 }
 
 export function process({ nodes, edges }) {
@@ -300,11 +295,10 @@ export function render({ nodes, edges }) {
   });
   svg.call(zoom);
 
-  // zoom features
+  // zoom init
   const { resetScale, resetTranslate } = d3Zoom(svg, zoom);
-
-  // dry run the simulation before rendering and initiating zoom to have better coordinates
   d3.range(50).forEach(() => {
+    // manually run the simulation before rendering and initiating zoom to have better coordinates
     updateEdgeLabelNodes();
     simulation.tick();
     labelNodeSimulations.forEach((labelNodeSimulation) =>
@@ -318,8 +312,7 @@ export function render({ nodes, edges }) {
 
   // event handlers
   addEventListener("resize", resetScale);
-
-  registerHandlers();
+  registerOnClick(svg, ({ id }) => id);
 }
 
 function drag(simulation) {

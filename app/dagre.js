@@ -1,5 +1,6 @@
 import { getEdges, getNodes } from "./utils/graphlibdot.js";
 import { d3Zoom } from "./utils/d3-zoom.js";
+import { registerOnClick } from "./utils/onclick.js";
 
 /** Adds visual dimensions to nodes and edges */
 export function process(graph) {
@@ -44,12 +45,6 @@ export function process(graph) {
   return graph;
 }
 
-export function registerHandlers() {
-  d3.selectAll("#dagre g.node").on("click", (id) => {
-    alert(`you have just clicked on node ${id}`);
-  });
-}
-
 export function render(graph) {
   // Render the graphlib object using d3
   const dagreD3Render = new dagreD3.render();
@@ -63,12 +58,12 @@ export function render(graph) {
   });
   svg.call(zoom);
 
-  // zoom features
+  // zoom init
   const { resetScale, resetTranslate } = d3Zoom(svg, zoom);
   resetScale();
   resetTranslate();
 
   // event handlers
   addEventListener("resize", resetScale);
-  registerHandlers();
+  registerOnClick(svg);
 }

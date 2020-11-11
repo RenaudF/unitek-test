@@ -1,4 +1,5 @@
 import { getEdges, getNodes } from "./utils/graphlibdot.js";
+import { registerOnClick } from "./utils/onclick.js";
 
 /** Adds visual dimensions to nodes and edges */
 export function process(graph) {
@@ -41,13 +42,11 @@ export function process(graph) {
   return graph;
 }
 
-export function registerHandlers() {
-  d3.selectAll("#graphviz g.node").on("click", ({ key }) => {
-    alert(`you have just clicked on node ${key}`);
-  });
-}
-
 export function render(graph) {
   const dotString = graphlibDot.write(graph);
-  d3.select("#graphviz").graphviz().renderDot(dotString, registerHandlers);
+  d3.select("#graphviz")
+    .graphviz()
+    .renderDot(dotString, () => {
+      registerOnClick(d3.select("#graphviz svg"), ({ key }) => key);
+    });
 }
