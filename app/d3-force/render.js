@@ -3,12 +3,36 @@ import { registerOnClick } from "../utils/onclick.js";
 import { diagonal2square, drag, getMiddle, xy2array } from "./utils.js";
 import { MIN_ARROW_SIZE, EDGE_THICKNESS_EXTENT } from "./constants.js";
 
-export function render({ nodes, edges }) {
-  const [, MAX_ARROW_SIZE] = EDGE_THICKNESS_EXTENT;
-
+export function render(graph) {
+  // Render the graphlib object using d3
   const svg = d3.select("#d3-force").append("svg");
+  const { tick } = d3forceRender(svg, graph);
+  const inner = svg.select("g");
+
+  // setup zoom behaviour
+  const zoom = d3.zoom().on("zoom", function () {
+    inner.attr("transform", d3.zoomTransform(inner.node()));
+  });
+  svg.call(zoom);
+
+  // zoom init
+  const { resetScale, resetTranslate } = d3Zoom(svg, zoom);
+  d3.range(50).forEach(tick);
+  requestAnimationFrame(() => {
+    resetScale();
+    resetTranslate();
+  });
+
+  // event handlers
+  addEventListener("resize", resetScale);
+  registerOnClick(svg, ({ id }) => id);
+}
+
+function d3forceRender(svg, { nodes, edges }) {
+  const [, MAX_ARROW_SIZE] = EDGE_THICKNESS_EXTENT;
   const { width, height } = svg.node().getBoundingClientRect();
   svg.attr("width", width).attr("height", height);
+  const inner = svg.append("g");
 
   const defs = svg.append("defs");
   d3.cross(
@@ -37,8 +61,6 @@ export function render({ nodes, edges }) {
         ])
       )
   );
-
-  const inner = svg.append("g");
 
   const simulation = d3
     .forceSimulation(nodes, ({ id }) => id)
@@ -171,34 +193,8 @@ export function render({ nodes, edges }) {
     .join("text")
     .text(({ edge: { label } }) => label);
 
-  function updateEdgeLabelNodes() {
-    edgeLabelNodes.forEach((edgeLabelNode) => {
-      const { source, label, edge, circular } = edgeLabelNode;
-      source.fx = source.x = edge.source.x;
-      source.fy = source.y = edge.source.y;
-      if (circular) {
-        const { left, right } = edgeLabelNode;
-        const [[x1, y1], [x2, y2]] = diagonal2square(
-          xy2array(source),
-          xy2array(label)
-        );
-        left.x = x1;
-        left.y = y1;
-        right.x = x2;
-        right.y = y2;
-      } else {
-        const { target, middle } = edgeLabelNode;
-        target.fx = target.x = edge.target.x;
-        target.fy = target.y = edge.target.y;
-        const _middle = getMiddle(source, target);
-        middle.x = middle.fx = _middle.x;
-        middle.y = middle.fy = _middle.y;
-      }
-    });
-  }
-
   simulation.on("tick", () => {
-    updateEdgeLabelNodes();
+    updateEdgeLabelNodes(edgeLabelNodes);
 
     labelNodeSimulations.forEach((labelSimulation) =>
       labelSimulation.alpha(simulation.alpha()).restart()
@@ -225,28 +221,39 @@ export function render({ nodes, edges }) {
       .attr("y", ({ label }) => label.y);
   });
 
-  // setup zoom behaviour
-  const zoom = d3.zoom().on("zoom", function () {
-    inner.attr("transform", d3.zoomTransform(inner.node()));
-  });
-  svg.call(zoom);
-
-  // zoom init
-  const { resetScale, resetTranslate } = d3Zoom(svg, zoom);
-  d3.range(50).forEach(() => {
-    // manually run the simulation before rendering and initiating zoom to have better coordinates
-    updateEdgeLabelNodes();
+  /** manually step the simulation once */
+  const tick = () => {
+    updateEdgeLabelNodes(edgeLabelNodes);
     simulation.tick();
     labelNodeSimulations.forEach((labelNodeSimulation) =>
       labelNodeSimulation.tick()
     );
-  });
-  requestAnimationFrame(() => {
-    resetScale();
-    resetTranslate();
-  });
+  };
+  return { tick };
+}
 
-  // event handlers
-  addEventListener("resize", resetScale);
-  registerOnClick(svg, ({ id }) => id);
+function updateEdgeLabelNodes(edgeLabelNodes) {
+  edgeLabelNodes.forEach((edgeLabelNode) => {
+    const { source, label, edge, circular } = edgeLabelNode;
+    source.fx = source.x = edge.source.x;
+    source.fy = source.y = edge.source.y;
+    if (circular) {
+      const { left, right } = edgeLabelNode;
+      const [[x1, y1], [x2, y2]] = diagonal2square(
+        xy2array(source),
+        xy2array(label)
+      );
+      left.x = x1;
+      left.y = y1;
+      right.x = x2;
+      right.y = y2;
+    } else {
+      const { target, middle } = edgeLabelNode;
+      target.fx = target.x = edge.target.x;
+      target.fy = target.y = edge.target.y;
+      const _middle = getMiddle(source, target);
+      middle.x = middle.fx = _middle.x;
+      middle.y = middle.fy = _middle.y;
+    }
+  });
 }
