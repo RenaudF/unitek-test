@@ -7,8 +7,8 @@
     "restart": "npm stop 2>/dev/null && npm start",
     "start": "docker run -it -d --rm -p 8080:80 --name web webserver",
     "stop": "docker container stop web || true",
-    "watch": "npm run restart && onchange 'app/*' -- npm run restart",
-    "watch:style": "npm run restart && onchange 'app/*' -- bash -c 'prettier -uw {{changed}} && eslint --fix app && npm run restart'"
+    "watch": "npm run restart && onchange 'app/**/*' -- npm run restart",
+    "watch:style": "npm run restart && onchange 'app/**/*' -- bash -c 'prettier -uw {{changed}} && eslint --fix app && npm run restart'"
   },
   "author": "Renaud Fontana <sirgzu@hotmail.com>",
   "license": "ISC",
