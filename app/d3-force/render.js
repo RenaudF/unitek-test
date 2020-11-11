@@ -1,14 +1,20 @@
 import { d3Zoom } from "../utils/d3-zoom.js";
 import { registerOnClick } from "../utils/onclick.js";
 import { diagonal2square, drag, getMiddle, xy2array } from "./utils.js";
+import { MIN_ARROW_SIZE, EDGE_THICKNESS_EXTENT } from "./constants.js";
 
 export function render({ nodes, edges }) {
+  const [, MAX_ARROW_SIZE] = EDGE_THICKNESS_EXTENT;
+
   const svg = d3.select("#d3-force").append("svg");
   const { width, height } = svg.node().getBoundingClientRect();
   svg.attr("width", width).attr("height", height);
 
   const defs = svg.append("defs");
-  d3.cross(["green", "#999"], d3.range(8, 16)).forEach(([color, size]) =>
+  d3.cross(
+    ["green", "#999"],
+    d3.range(MIN_ARROW_SIZE, MAX_ARROW_SIZE + 1)
+  ).forEach(([color, size]) =>
     defs
       .append("marker")
       .attr("id", `arrow-${color}-${size}`)
@@ -110,7 +116,9 @@ export function render({ nodes, edges }) {
       "marker-mid",
       ({ circular, edge: { color, width } }) =>
         circular ||
-        `url(#arrow-${color || "#999"}-${Math.floor(Math.max(8, width))})`
+        `url(#arrow-${color || "#999"}-${Math.floor(
+          Math.max(MIN_ARROW_SIZE, width)
+        )})`
     );
 
   const nodeGroup = inner

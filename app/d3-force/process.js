@@ -1,4 +1,5 @@
-export function process({ nodes, edges }) {
+import { EDGE_THICKNESS_EXTENT } from "./constants.js";
+
   // setting all nodes color gradient
   const nodeValueExtent = d3.extent(nodes, ({ value }) => value);
   const nodeColourScale = d3
@@ -15,7 +16,7 @@ export function process({ nodes, edges }) {
   const edgeThicknessScale = d3
     .scaleSqrt()
     .domain(edgeValueExtent)
-    .range([1, 15]);
+    .range(EDGE_THICKNESS_EXTENT);
 
   edges.forEach((edge) => (edge.width = edgeThicknessScale(edge.value)));
 
