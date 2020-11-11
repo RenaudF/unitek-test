@@ -8,7 +8,8 @@ body {
   align-items: center;
 }
 div.graph {
-  width: 45vw;
+  flex: 1 1 0;
+  margin: 0px 10px;
   height: 70vh;
 }
 svg {
