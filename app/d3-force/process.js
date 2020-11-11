@@ -1,7 +1,14 @@
 import { EDGE_THICKNESS_EXTENT } from "./constants.js";
 
+export function process(viewmodel) {
+  const {
+    graph: { nodes, edges },
+    nodeValueExtent,
+    edgeValueExtent,
+    topValueEdge,
+  } = viewmodel;
+
   // setting all nodes color gradient
-  const nodeValueExtent = d3.extent(nodes, ({ value }) => value);
   const nodeColourScale = d3
     .scaleLinear()
     .domain(nodeValueExtent)
@@ -12,7 +19,6 @@ import { EDGE_THICKNESS_EXTENT } from "./constants.js";
   );
 
   // setting all edges thickness
-  const edgeValueExtent = d3.extent(edges, ({ value }) => value);
   const edgeThicknessScale = d3
     .scaleSqrt()
     .domain(edgeValueExtent)
@@ -21,11 +27,9 @@ import { EDGE_THICKNESS_EXTENT } from "./constants.js";
   edges.forEach((edge) => (edge.width = edgeThicknessScale(edge.value)));
 
   // setting top value edge color and related node shapes
-  const edgesTopValue = d3.max(edges, ({ value }) => value);
-  const topValueEdge = edges.find(({ value }) => value === edgesTopValue);
-  topValueEdge.color = "green";
-  const { source, target } = topValueEdge;
-  [source, target].forEach((node) => (node.shape = "rect"));
+  edges.find(({ value }) => topValueEdge.edge.value === value).color = "green";
+  const { v, w } = topValueEdge;
+  [v, w].forEach((id) => (nodes.find((node) => node.id === id).shape = "rect"));
 
   return { nodes, edges };
 }

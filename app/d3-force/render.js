@@ -145,7 +145,7 @@ export function render({ nodes, edges }) {
         return d3.create("svg:circle").attr("r", 25).node();
     }
   });
-  nodeGroup.append(({ data: { label } }) => {
+  nodeGroup.append(({ label }) => {
     const [id, value] = label.split("\\n").map((s) => s.trim());
     const text = d3.create("svg:text");
     text
@@ -169,13 +169,7 @@ export function render({ nodes, edges }) {
     .selectAll("text")
     .data(edgeLabelNodes)
     .join("text")
-    .text(
-      ({
-        edge: {
-          data: { label },
-        },
-      }) => label
-    );
+    .text(({ edge: { label } }) => label);
 
   function updateEdgeLabelNodes() {
     edgeLabelNodes.forEach((edgeLabelNode) => {

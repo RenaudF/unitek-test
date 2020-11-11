@@ -8,25 +8,18 @@ import {
   render as graphvizRender,
 } from "./graphviz/index.js";
 import {
-  preprocess as d3forcePreprocess,
+  convertGraph,
   process as d3forceProcess,
   render as d3forceRender,
 } from "./d3-force/index.js";
+import { cloneGraph, viewmodel } from "./utils/viewmodel.js";
 
-d3.text("test.gv")
+const viewmodelPromise = d3
+  .text("test.gv")
   .then(graphlibDot.read)
   .then(preprocess)
-  .then(dagreProcess)
-  .then(dagreRender);
+  .then(viewmodel);
 
-d3.text("test.gv")
-  .then(graphlibDot.read)
-  .then(preprocess)
-  .then(graphvizProcess)
-  .then(graphvizRender);
-
-d3.text("test.gv")
-  .then(graphlibDot.read)
-  .then(d3forcePreprocess)
-  .then(d3forceProcess)
-  .then(d3forceRender);
+viewmodelPromise.then(cloneGraph).then(dagreProcess).then(dagreRender);
+viewmodelPromise.then(cloneGraph).then(graphvizProcess).then(graphvizRender);
+viewmodelPromise.then(convertGraph).then(d3forceProcess).then(d3forceRender);
